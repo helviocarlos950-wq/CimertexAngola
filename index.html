@@ -1,0 +1,2221 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#041e3d">
+<title>EPI-Manager Cimertex Angola</title>
+
+<!-- Supabase opcional para sincronização online entre dispositivos -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Bibliotecas PDF e gráficos -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+  --navy-950:#020f22;
+  --navy-900:#041e3d;
+  --navy-850:#062a52;
+  --navy-800:#083767;
+  --navy-700:#0d4a86;
+  --navy-600:#145da5;
+  --yellow:#ffc400;
+  --yellow-dark:#d9a300;
+  --yellow-soft:#fff3c4;
+  --white:#fff;
+  --surface:#fff;
+  --page:#eef2f7;
+  --line:#d5e0ea;
+  --text:#132c44;
+  --muted:#647a8d;
+  --danger:#c0392b;
+  --danger-bg:#fde9e6;
+  --success:#217641;
+  --success-bg:#e2f4e8;
+  --warning:#b87805;
+  --warning-bg:#fff1cb;
+  --radius:12px;
+  --shadow:0 12px 32px rgba(2,15,34,.12);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-width:320px;color:var(--text);background:var(--page);font-family:"Segoe UI",Roboto,Arial,sans-serif;font-size:14px}
+body.modal-open{overflow:hidden}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+textarea{resize:vertical}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(255,196,0,.55);outline-offset:2px}
+label{display:block;margin-bottom:7px;color:var(--navy-850);font-size:11px;font-weight:800;text-transform:uppercase}
+input,select,textarea{width:100%;min-height:43px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;color:var(--text);background:var(--white)}
+textarea{min-height:92px}
+input:focus,select:focus,textarea:focus{border-color:var(--navy-600);box-shadow:0 0 0 3px rgba(20,93,165,.13)}
+input[readonly]{color:var(--muted);background:#f5f8fb}
+
+/* LOGIN */
+#loginPage{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px;overflow:hidden;
+background:radial-gradient(circle at 12% 18%,rgba(255,196,0,.14),transparent 30%),
+radial-gradient(circle at 86% 86%,rgba(20,93,165,.30),transparent 30%),
+linear-gradient(135deg,var(--navy-950),var(--navy-850) 55%,var(--navy-700))}
+.login-shell{display:grid;width:min(1080px,100%);min-height:610px;grid-template-columns:1.08fr .92fr;overflow:hidden;border:1px solid rgba(255,255,255,.15);border-radius:18px;background:var(--white);box-shadow:0 34px 90px rgba(0,0,0,.38)}
+.login-brand{position:relative;display:flex;min-height:560px;flex-direction:column;justify-content:space-between;padding:52px;overflow:hidden;color:var(--white);background:linear-gradient(145deg,rgba(2,15,34,.95),rgba(6,42,82,.96)),var(--navy-900);border-right:6px solid var(--yellow)}
+.login-brand::before{position:absolute;top:-140px;right:-140px;width:360px;height:360px;border:42px solid rgba(255,196,0,.08);border-radius:50%;content:""}
+.login-brand::after{position:absolute;right:-90px;bottom:-135px;width:310px;height:310px;border:40px solid rgba(255,255,255,.04);border-radius:50%;content:""}
+.brand-content,.brand-footer,.brand-logo-wrap{position:relative;z-index:1}
+.brand-logo-wrap{display:flex;align-items:center;gap:14px}
+.brand-logo{width:auto;max-width:210px;max-height:58px;object-fit:contain;object-position:left center}
+.brand-logo-text{padding-left:14px;border-left:1px solid rgba(255,255,255,.28);color:rgba(255,255,255,.72);font-size:10px;font-weight:700;letter-spacing:.14em;line-height:1.45;text-transform:uppercase}
+.login-brand h1{max-width:510px;margin:0 0 18px;font-size:clamp(34px,4vw,50px);letter-spacing:-.04em;line-height:1.04}
+.login-brand h1 span{color:var(--yellow)}
+.login-brand p{max-width:440px;margin:0;color:rgba(255,255,255,.76);font-size:15px;line-height:1.7}
+.brand-points{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:30px}
+.brand-point{display:flex;align-items:center;gap:9px;padding:11px 12px;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:rgba(255,255,255,.82);background:rgba(255,255,255,.05);font-size:11px;font-weight:700}
+.brand-point i{display:grid;width:23px;height:23px;flex:0 0 auto;place-items:center;border-radius:50%;color:var(--navy-950);background:var(--yellow);font-style:normal;font-size:12px}
+.brand-footer{color:rgba(255,255,255,.55);font-size:11px;letter-spacing:.05em}
+.login-panel{display:flex;align-items:center;padding:50px;background:var(--white)}
+.login-box{width:100%;max-width:360px;margin:auto}
+.login-logo{display:block;width:auto;max-width:230px;max-height:78px;margin:0 0 32px;object-fit:contain;object-position:left center}
+.login-eyebrow{display:inline-flex;align-items:center;gap:7px;margin-bottom:11px;color:var(--navy-700);font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.login-eyebrow::before{width:26px;height:3px;border-radius:3px;background:var(--yellow);content:""}
+.login-box h2{margin:0 0 8px;color:var(--navy-900);font-size:29px;letter-spacing:-.03em}
+.login-box>p{margin:0 0 28px;color:var(--muted);font-size:13px;line-height:1.6}
+.field{margin-bottom:15px}
+.input-wrap{position:relative}
+.input-wrap input,.input-wrap select{padding-left:41px}
+.input-icon{position:absolute;top:50%;left:14px;color:var(--navy-600);transform:translateY(-50%);font-size:15px;pointer-events:none}
+.login-error{display:none;margin-top:14px;padding:11px 13px;border-left:4px solid var(--danger);border-radius:7px;color:#81281f;background:var(--danger-bg);font-size:12px;line-height:1.45}
+.login-help{margin-top:18px;color:var(--muted);font-size:11px;line-height:1.55;text-align:center}
+
+/* BOTÕES */
+.btn{display:inline-flex;min-height:40px;align-items:center;justify-content:center;gap:7px;padding:9px 15px;border:1px solid transparent;border-radius:7px;font-size:11px;font-weight:850;letter-spacing:.035em;text-align:center;text-transform:uppercase;transition:transform .16s ease,filter .16s ease}
+.btn:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn-primary{color:var(--white);background:var(--navy-800)}
+.btn-yellow{color:var(--navy-950);background:var(--yellow)}
+.btn-outline{color:var(--navy-800);border-color:#b9cbdb;background:var(--white)}
+.btn-danger{color:var(--white);background:var(--danger)}
+.btn-small{min-height:30px;padding:5px 9px;border-radius:6px;font-size:9px}
+.btn-wide{width:100%;min-height:45px}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+/* APP */
+#app{display:none;min-height:100vh}
+.app-header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:84px;padding:10px 28px;border-bottom:4px solid var(--yellow);background:var(--navy-900);box-shadow:0 4px 18px rgba(2,15,34,.24)}
+.header-brand{display:flex;min-width:260px;align-items:center;gap:15px}
+.header-logo{display:block;width:auto;max-width:190px;max-height:58px;object-fit:contain;object-position:left center}
+.header-divider{width:1px;height:44px;background:rgba(255,255,255,.18)}
+.header-title h1{margin:0;color:var(--white);font-size:15px;letter-spacing:-.01em}
+.header-title p{margin:4px 0 0;color:#a8c0d6;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.header-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.user-chip{display:flex;align-items:center;gap:8px;margin-right:5px;padding:7px 10px;border:1px solid rgba(255,255,255,.16);border-radius:30px;color:var(--white);background:rgba(255,255,255,.07);font-size:11px;font-weight:800}
+.user-avatar{display:grid;width:25px;height:25px;place-items:center;border-radius:50%;color:var(--navy-950);background:var(--yellow);font-size:10px}
+.sync-chip{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid rgba(255,255,255,.16);border-radius:30px;color:#cfe0ef;background:rgba(255,255,255,.06);font-size:10px;font-weight:800}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--yellow)}
+.sync-chip.online .sync-dot{background:#5ad46a}
+.container{max-width:1640px;margin:0 auto;padding:28px 24px 56px}
+.page-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px}
+.page-intro h2{margin:0;color:var(--navy-900);font-size:26px;letter-spacing:-.035em}
+.page-intro p{margin:7px 0 0;color:var(--muted);font-size:13px}
+.system-date{padding:8px 12px;border:1px solid #f0d67a;border-radius:8px;color:#8a6900;background:var(--yellow-soft);font-size:11px;font-weight:800;white-space:nowrap}
+.tabs{display:flex;gap:6px;margin-bottom:22px;padding:6px;border-radius:11px;background:var(--navy-900);box-shadow:var(--shadow)}
+.tab-btn{min-height:42px;flex:1;padding:9px 12px;border:0;border-radius:7px;color:#c5d7e6;background:transparent;font-size:10px;font-weight:850;letter-spacing:.04em;text-transform:uppercase;transition:.18s ease}
+.tab-btn:hover{color:var(--white);background:rgba(255,255,255,.1)}
+.tab-btn.active{color:var(--navy-950);background:var(--yellow)}
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fadeIn .22s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px}
+.metric{position:relative;overflow:hidden;padding:18px;border-radius:var(--radius);color:var(--white);background:linear-gradient(135deg,var(--navy-950),var(--navy-700));box-shadow:0 8px 20px rgba(2,15,34,.16)}
+.metric::after{position:absolute;right:-22px;bottom:-52px;width:115px;height:115px;border:22px solid rgba(255,196,0,.16);border-radius:50%;content:""}
+.metric-label,.metric-value,.metric-note{position:relative;z-index:1}
+.metric-label{display:block;color:#b8cbe0;font-size:10px;font-weight:800;letter-spacing:.065em;text-transform:uppercase}
+.metric-value{display:block;margin-top:8px;color:var(--yellow);font-size:29px;font-weight:900;line-height:1}
+.metric-note{display:block;margin-top:8px;color:rgba(255,255,255,.65);font-size:10px}
+.section-card{margin-bottom:20px;padding:22px;border:1px solid var(--line);border-top:4px solid var(--navy-700);border-radius:var(--radius);background:var(--surface);box-shadow:0 4px 14px rgba(2,15,34,.045)}
+.section-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
+.section-heading h2,.section-heading h3{margin:0;padding-left:10px;border-left:5px solid var(--yellow);color:var(--navy-900);font-size:15px}
+.section-heading p{margin:4px 0 0 15px;color:var(--muted);font-size:11px}
+.section-actions{display:flex;gap:8px;flex-wrap:wrap}
+.note{margin-bottom:18px;padding:12px 14px;border-left:4px solid var(--yellow-dark);border-radius:5px;color:var(--navy-850);background:var(--yellow-soft);font-size:12px;line-height:1.5}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:18px}
+.form-full{grid-column:1/-1}
+.equipment-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(305px,1fr));gap:13px;margin-top:10px;margin-bottom:18px}
+.equipment-card{padding:14px;border:1px solid var(--line);border-left:5px solid var(--navy-600);border-radius:9px;background:var(--white);transition:.18s ease}
+.equipment-card.selected{border-color:#f0d67a;border-left-color:var(--yellow);background:#fffbea}
+.equipment-header{display:flex;align-items:center;gap:9px;margin:0;color:var(--navy-900);font-size:13px;font-weight:850;text-transform:none}
+.equipment-header input{width:auto;min-height:0;accent-color:var(--navy-700)}
+.equipment-stock{margin-left:auto;color:var(--muted);font-size:10px;font-weight:700}
+.equipment-fields{display:grid;grid-template-columns:.75fr 1.45fr .75fr;gap:8px;margin-top:13px}
+.equipment-fields label{margin-bottom:5px;font-size:9px}
+.equipment-fields input,.equipment-fields select{min-height:37px;padding:7px 8px;font-size:11px}
+.button-row{display:flex;gap:11px;flex-wrap:wrap}
+.button-row .btn{flex:1 1 220px}
+.charts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.chart-card{height:340px;margin-bottom:0}
+.chart-card h3{margin:0 0 14px;color:var(--navy-850);font-size:13px}
+.chart-body{position:relative;height:260px}
+.two-columns{display:grid;grid-template-columns:1.24fr 1fr;gap:18px}
+.table-wrap{overflow-x:auto}
+.table-scroll{max-height:450px;overflow-y:auto}
+table{width:100%;min-width:630px;border-collapse:collapse}
+th{padding:11px;color:var(--white);background:var(--navy-900);font-size:10px;font-weight:850;letter-spacing:.035em;text-align:left;text-transform:uppercase;white-space:nowrap}
+td{padding:11px;border-bottom:1px solid #e8eef3;color:var(--text);font-size:12px;line-height:1.45;vertical-align:top}
+tbody tr:hover td{background:#fffbea}
+.table-name{color:var(--navy-900);font-weight:850}
+.table-sub{display:block;margin-top:2px;color:var(--muted);font-size:10px}
+.badge{display:inline-block;padding:4px 8px;border-radius:30px;font-size:9px;font-weight:900;letter-spacing:.04em;white-space:nowrap}
+.badge-ok{color:#176b38;background:var(--success-bg)}
+.badge-warning{color:#875300;background:var(--warning-bg)}
+.badge-danger{color:#8b261e;background:var(--danger-bg)}
+.badge-info{color:var(--navy-700);background:#e5f0fb}
+.stock-progress{width:110px;height:8px;overflow:hidden;border-radius:20px;background:#e2eaf1}
+.stock-progress>div{height:100%;border-radius:inherit}
+.stock-level{display:flex;align-items:center;gap:8px}
+.stock-percent{color:var(--muted);font-size:10px;font-weight:800}
+.empty{padding:30px;color:var(--muted);font-size:12px;text-align:center}
+
+#toastContainer{position:fixed;right:18px;bottom:18px;z-index:200;display:grid;width:min(385px,calc(100vw - 36px));gap:10px}
+.toast{display:flex;align-items:flex-start;gap:10px;padding:14px;border-left:4px solid var(--navy-700);border-radius:9px;color:var(--text);background:var(--white);box-shadow:0 15px 32px rgba(2,15,34,.2);animation:toastIn .22s ease}
+.toast.success{border-left-color:var(--success)}
+.toast.warning{border-left-color:var(--warning)}
+.toast.error{border-left-color:var(--danger)}
+.toast-icon{display:grid;width:23px;height:23px;flex:0 0 auto;place-items:center;border-radius:50%;color:var(--white);background:var(--navy-700);font-size:11px;font-weight:900}
+.toast.success .toast-icon{background:var(--success)}
+.toast.warning .toast-icon{background:var(--warning)}
+.toast.error .toast-icon{background:var(--danger)}
+.toast strong{display:block;margin-bottom:3px;color:var(--navy-900);font-size:12px}
+.toast span{display:block;color:var(--muted);font-size:11px;line-height:1.45}
+@keyframes toastIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+
+.modal-overlay{position:fixed;z-index:150;inset:0;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,15,34,.66);backdrop-filter:blur(3px)}
+.modal-overlay.show{display:flex}
+.modal{width:min(470px,100%);overflow:hidden;border-radius:12px;background:var(--white);box-shadow:0 28px 75px rgba(0,0,0,.32);animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(--line);background:#f7fafc}
+.modal-header h3{margin:0;color:var(--navy-900);font-size:16px}
+.modal-body{padding:20px;color:var(--muted);font-size:13px;line-height:1.55}
+.modal-body p{margin:0}
+.modal-footer{display:flex;justify-content:flex-end;gap:9px;padding:14px 20px;border-top:1px solid var(--line);background:#fbfcfd}
+
+@media(max-width:1180px){.app-header{align-items:flex-start;flex-direction:column}.header-actions{width:100%;justify-content:flex-start}}
+@media(max-width:1120px){.login-shell{grid-template-columns:1fr;max-width:560px}.login-brand{display:none}.login-panel{min-height:600px}.charts-grid,.two-columns{grid-template-columns:1fr}.chart-card{height:320px}}
+@media(max-width:920px){.app-header{padding:10px 15px}.metrics{grid-template-columns:repeat(2,1fr)}.tabs{overflow-x:auto}.tab-btn{min-width:185px}}
+@media(max-width:640px){#loginPage{padding:14px}.login-panel{min-height:auto;padding:34px 24px}.container{padding:20px 11px 42px}.page-intro{align-items:flex-start;flex-direction:column}.page-intro h2{font-size:23px}.header-brand{min-width:0;gap:9px}.header-logo{max-width:110px;height:40px}.header-divider{display:none}.header-title h1{font-size:12px}.header-title p{display:none}.user-chip{display:none}.metrics{grid-template-columns:1fr}.section-card{padding:15px}.equipment-grid,.equipment-fields{grid-template-columns:1fr}.button-row .btn{flex-basis:100%}.tabs{flex-direction:column}.tab-btn{width:100%;min-width:0}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<section id="loginPage">
+  <div class="login-shell">
+    <aside class="login-brand">
+      <div class="brand-logo-wrap">
+        <img class="brand-logo" src="logo_Komatsu.png" alt="Cimertex Angola" onerror="this.style.display='none'">
+        <div class="brand-logo-text">Serviços de<br>manutenção e construção</div>
+      </div>
+
+      <div class="brand-content">
+        <h1>Segurança, controlo e <span>confiança.</span></h1>
+        <p>Portal corporativo para gestão de equipamentos de proteção individual, equipamentos de proteção coletiva, inventário e movimentação de materiais.</p>
+
+        <div class="brand-points">
+          <div class="brand-point"><i>✓</i> Levantamento de EPI</div>
+          <div class="brand-point"><i>✓</i> Gestão de EPC</div>
+          <div class="brand-point"><i>✓</i> Inventário e stock</div>
+          <div class="brand-point"><i>✓</i> Relatórios em PDF</div>
+        </div>
+      </div>
+
+      <div class="brand-footer">CIMERTEX ANGOLA · AMBIENTE OPERACIONAL PROTEGIDO</div>
+    </aside>
+
+    <main class="login-panel">
+      <div class="login-box">
+        <img class="login-logo" src="logo_Komatsu.png" alt="Cimertex Angola" onerror="this.style.display='none'">
+
+        <div class="login-eyebrow">Portal corporativo</div>
+        <h2>Entrar no sistema</h2>
+        <p>Selecione o tipo de acesso e introduza as suas credenciais corporativas.</p>
+
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="perfil">Tipo de acesso</label>
+            <div class="input-wrap">
+              <span class="input-icon"></span>
+              <select id="perfil">
+                <option value="ADMIN">Administrador HST — acesso total</option>
+                <option value="DIRECAO">Direcção — acompanhamento</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="loginEmail">Email corporativo</label>
+            <div class="input-wrap">
+              <span class="input-icon">✉</span>
+              <input id="loginEmail" type="email" autocomplete="username" placeholder="email@cimertex.co.ao" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="loginSenha">Palavra-passe</label>
+            <div class="input-wrap">
+              <span class="input-icon">●</span>
+              <input id="loginSenha" type="password" autocomplete="current-password" placeholder="Introduza a palavra-passe" required>
+            </div>
+          </div>
+
+          <button class="btn btn-yellow btn-wide" type="submit">Entrar no sistema</button>
+
+          <div id="loginError" class="login-error">
+            Credenciais inválidas para o tipo de acesso selecionado.
+          </div>
+
+          <div class="login-help">
+             <strong></strong> · <br>
+             <strong></strong> · 
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- SISTEMA -->
+<div id="app">
+  <header class="app-header">
+    <div class="header-brand">
+      <img class="header-logo" src="logo_Komatsu.png" alt="Cimertex Angola" onerror="this.style.display='none'">
+      <div class="header-divider"></div>
+      <div class="header-title">
+        <h1>EPI-MANAGER CIMERTEX ANGOLA</h1>
+        <p>EPI · EPC · Inventário · Movimentos · Relatórios</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="sync-chip" id="syncChip">
+        <span class="sync-dot"></span>
+        <span id="syncText">Armazenamento local</span>
+      </div>
+
+      <div class="user-chip">
+        <div class="user-avatar" id="userInitials">AD</div>
+        <span id="loggedUser">Administrador</span>
+      </div>
+
+      <button class="btn btn-primary" type="button" onclick="relEPIPDF()">PDF EPI</button>
+      <button class="btn btn-primary" type="button" onclick="relEPCMovPDF()">PDF EPC</button>
+      <button class="btn btn-yellow" type="button" onclick="sairSistema()">Sair</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-intro">
+      <div>
+        <h2>Centro de controlo de segurança</h2>
+        <p>Registe levantamentos de EPI, movimentos de EPC, inventário e relatórios operacionais.</p>
+      </div>
+      <div class="system-date" id="systemDate">Carregando data...</div>
+    </div>
+
+    <nav class="tabs">
+      <button class="tab-btn active" type="button" data-tab="abaEPI">Levantamento de EPI</button>
+      <button class="tab-btn" type="button" data-tab="abaEPC">Proteção Coletiva</button>
+      <button class="tab-btn" type="button" data-tab="abaRel">Relatórios e Inventário</button>
+    </nav>
+
+    <!-- EPI -->
+    <section id="abaEPI" class="tab-content active">
+      <div class="metrics">
+        <article class="metric">
+          <span class="metric-label">Levantamentos de EPI</span>
+          <strong class="metric-value" id="mLev">0</strong>
+          <span class="metric-note">Registos efectuados</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Itens de EPI entregues</span>
+          <strong class="metric-value" id="mEqp">0</strong>
+          <span class="metric-note">Unidades distribuídas</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Saídas de EPC</span>
+          <strong class="metric-value" id="mEpc">0</strong>
+          <span class="metric-note">Movimentos de saída</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Itens de EPC em stock</span>
+          <strong class="metric-value" id="mEpcStock">0</strong>
+          <span class="metric-note">Unidades disponíveis</span>
+        </article>
+      </div>
+
+      <section class="section-card">
+        <div class="section-heading">
+          <div>
+            <h2>Registo de entrega de equipamentos</h2>
+            <p>Distribuição individual de equipamentos de proteção individual.</p>
+          </div>
+        </div>
+
+        <div class="note">
+          O próximo levantamento é calculado automaticamente para seis meses após a data da entrega registada.
+        </div>
+
+        <div class="form-grid">
+          <div><label for="nome">Nome do colaborador</label><input id="nome" type="text" placeholder="Nome completo"></div>
+          <div><label for="mec">Nº mecanográfico</label><input id="mec" type="text" placeholder="Matrícula"></div>
+          <div><label for="depart">Departamento</label><select id="depart" class="dept-select"></select></div>
+          <div><label for="setor">Sector</label><select id="setor"><option value="">Selecione o departamento primeiro</option></select></div>
+          <div><label for="dataRec">Data do levantamento</label><input id="dataRec" type="date"></div>
+          <div><label for="proximaData">Próximo levantamento</label><input id="proximaData" type="date" readonly></div>
+        </div>
+
+        <label>Equipamentos por tipo, tamanho e quantidade</label>
+        <div id="listaEPI" class="equipment-grid"></div>
+
+        <div class="button-row">
+          <button class="btn btn-primary" type="button" onclick="processarEntrega(false)">Confirmar e gerar ficha PDF</button>
+          <button class="btn btn-yellow" type="button" onclick="processarEntrega(true)">Confirmar e preparar email</button>
+        </div>
+      </section>
+
+      <div class="charts-grid">
+        <section class="section-card chart-card"><h3>Nível de stock de EPI</h3><div class="chart-body"><canvas id="chS"></canvas></div></section>
+        <section class="section-card chart-card"><h3>Levantamentos por departamento</h3><div class="chart-body"><canvas id="chD"></canvas></div></section>
+        <section class="section-card chart-card"><h3>Consumo mensal de EPI</h3><div class="chart-body"><canvas id="chM"></canvas></div></section>
+      </div>
+    </section>
+
+    <!-- EPC -->
+    <section id="abaEPC" class="tab-content">
+      <section class="section-card">
+        <div class="section-heading">
+          <div>
+            <h2>Cadastro de equipamento de proteção coletiva</h2>
+            <p>Adicione EPC ao inventário operacional.</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div><label for="epcNome">Equipamento</label><input id="epcNome" type="text" placeholder="Ex.: Extintor CO₂ 6 kg"></div>
+          <div><label for="epcLocal">Local de armazenamento</label><input id="epcLocal" type="text" placeholder="Ex.: Armazém central"></div>
+          <div><label for="epcQtd">Quantidade inicial</label><input id="epcQtd" type="number" min="0" value="0"></div>
+          <div><label for="epcMin">Stock mínimo</label><input id="epcMin" type="number" min="0" value="5"></div>
+        </div>
+
+        <button class="btn btn-yellow" type="button" onclick="cadastrarEPC()">Cadastrar EPC</button>
+      </section>
+
+      <section class="section-card">
+        <div class="section-heading">
+          <div>
+            <h2>Registo de saída de EPC</h2>
+            <p>Registe materiais destinados a obras, oficinas, viaturas ou áreas técnicas.</p>
+          </div>
+        </div>
+
+        <div class="note">
+          Apenas o Administrador HST pode registar saídas e movimentar stock. O acesso Direcção permite consultar os movimentos e o inventário.
+        </div>
+
+        <div class="form-grid">
+          <div><label for="sEpc">Equipamento</label><select id="sEpc"></select></div>
+          <div><label for="sQtd">Quantidade</label><input id="sQtd" type="number" min="1" value="1"></div>
+          <div><label for="sResp">Responsável</label><input id="sResp" type="text" placeholder="Nome do responsável"></div>
+          <div><label for="sDept">Departamento</label><select id="sDept" class="dept-select"></select></div>
+          <div><label for="sDest">Área / obra / local de instalação</label><input id="sDest" type="text" placeholder="Ex.: Obra Talatona, oficina móvel"></div>
+          <div><label for="sData">Data da saída</label><input id="sData" type="date"></div>
+          <div class="form-full"><label for="sMot">Motivo / observação</label><textarea id="sMot" placeholder="Indique o motivo da saída e informações relevantes"></textarea></div>
+        </div>
+
+        <button class="btn btn-primary" type="button" onclick="registarSaidaEPC()">Registar saída de EPC</button>
+      </section>
+
+      <section class="section-card">
+        <div class="section-heading">
+          <div>
+            <h2>Inventário de EPC</h2>
+            <p>Estado atual dos equipamentos de proteção coletiva.</p>
+          </div>
+          <div class="section-actions">
+            <button class="btn btn-outline btn-small" type="button" onclick="relEPCPDF()">Exportar inventário PDF</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Equipamento</th><th>Local</th><th>Quantidade</th><th>Mínimo</th><th>Estado</th><th>Ações</th></tr></thead>
+            <tbody id="tbEPC"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section-card">
+        <div class="section-heading">
+          <div>
+            <h2>Histórico de movimentos de EPC</h2>
+            <p>Entradas de reposição e saídas de equipamentos.</p>
+          </div>
+          <div class="section-actions">
+            <button class="btn btn-primary btn-small" type="button" onclick="relEPCMovPDF()">Relatório EPC PDF</button>
+            <button class="btn btn-danger btn-small" type="button" onclick="limparEPC()">Limpar histórico</button>
+          </div>
+        </div>
+
+        <div class="table-wrap table-scroll">
+          <table>
+            <thead><tr><th>Data</th><th>Movimento</th><th>Equipamento</th><th>Qtd.</th><th>Responsável</th><th>Departamento</th><th>Destino</th><th>Motivo</th></tr></thead>
+            <tbody id="tbMovEPC"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <!-- RELATÓRIOS -->
+    <section id="abaRel" class="tab-content">
+      <section class="section-card">
+        <div class="section-heading">
+          <div>
+            <h2>Relatórios de saídas</h2>
+            <p>Relatórios baseados apenas nos históricos de EPI e EPC.</p>
+          </div>
+        </div>
+
+        <div class="note">
+          O relatório de EPI apresenta uma linha por levantamento, consolidando todos os equipamentos entregues ao mesmo colaborador. O relatório de EPC reproduz as informações do histórico de movimentos.
+        </div>
+
+        <div class="button-row">
+          <button class="btn btn-primary" type="button" onclick="relEPIPDF()">Relatório de saídas EPI</button>
+          <button class="btn btn-primary" type="button" onclick="relEPCMovPDF()">Relatório de movimentos EPC</button>
+          <button class="btn btn-yellow" type="button" onclick="relSaidasPDF()">Relatório consolidado EPI + EPC</button>
+          <button class="btn btn-outline" type="button" onclick="invEPIPDF()">Inventário atual EPI</button>
+          <button class="btn btn-outline" type="button" onclick="enviarRelatorioSaidasEmail()">Preparar resumo por email</button>
+        </div>
+      </section>
+
+      <div class="two-columns">
+        <section class="section-card">
+          <div class="section-heading">
+            <div>
+              <h2>Inventário de EPI</h2>
+              <p>Controlo de quantidades e necessidade de reposição.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-primary btn-small" type="button" onclick="invEPIPDF()">Inventário EPI PDF</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Equipamento</th><th>Nível</th><th>Qtd.</th><th>Estado</th><th>Gestão</th></tr></thead>
+              <tbody id="tbStock"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section-card">
+          <div class="section-heading">
+            <div>
+              <h2>Histórico de levantamentos</h2>
+              <p>Últimas entregas individuais de EPI.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-danger btn-small" type="button" onclick="limparHistorico()">Limpar histórico</button>
+            </div>
+          </div>
+
+          <div class="table-wrap table-scroll">
+            <table>
+              <thead><tr><th>Data</th><th>Colaborador</th><th>Equipamentos</th></tr></thead>
+              <tbody id="tbRel"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toastContainer" aria-live="polite"></div>
+
+<div id="modalOverlay" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modalTitle">Confirmar ação</h3></div>
+    <div class="modal-body"><p id="modalMessage"></p></div>
+    <div class="modal-footer">
+      <button id="modalCancel" class="btn btn-outline" type="button">Cancelar</button>
+      <button id="modalConfirm" class="btn btn-danger" type="button">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   CONFIGURAÇÃO DE ARMAZENAMENTO
+============================================================ */
+
+const STORAGE_KEYS = {
+  stock: "cimertex_epi_stock_v1",
+  records: "cimertex_epi_records_v1",
+  epcs: "cimertex_epc_inventory_v1",
+  movements: "cimertex_epc_movements_v1"
+};
+
+/* ============================================================
+   SUPABASE — OPCIONAL
+
+   Para sincronizar entre computadores diferentes:
+   1. Crie um projeto em https://supabase.com
+   2. Crie as tabelas indicadas abaixo no SQL Editor.
+   3. Substitua SUPABASE_URL e SUPABASE_ANON_KEY.
+   4. Em Authentication, crie os dois utilizadores.
+   5. Configure Row Level Security conforme indicado.
+
+   Tabelas sugeridas:
+
+   create table epi_stock (
+     id bigint generated by default as identity primary key,
+     nome text not null,
+     qtd integer not null default 0,
+     max integer not null default 0,
+     tipos jsonb not null default '[]',
+     tamanhos jsonb not null default '[]',
+     updated_at timestamptz default now()
+   );
+
+   create table epi_records (
+     id bigint generated by default as identity primary key,
+     data date not null,
+     proxima_data date,
+     nome text not null,
+     mec text,
+     dept text,
+     setor text,
+     itens jsonb not null default '[]',
+     created_by text,
+     created_at timestamptz default now()
+   );
+
+   create table epc_inventory (
+     id bigint generated by default as identity primary key,
+     nome text not null,
+     local text,
+     qtd integer not null default 0,
+     min integer not null default 0,
+     updated_at timestamptz default now()
+   );
+
+   create table epc_movements (
+     id bigint generated by default as identity primary key,
+     data date not null,
+     tipo text not null,
+     nome text not null,
+     qtd integer not null,
+     resp text,
+     dept text,
+     destino text,
+     motivo text,
+     created_by text,
+     created_at timestamptz default now()
+   );
+
+   Políticas RLS sugeridas:
+   - Leitura para utilizadores autenticados.
+   - Escrita apenas para o perfil Administrador HST.
+
+   Exemplo:
+   create policy "Leitura para utilizadores autenticados"
+   on epi_records for select
+   to authenticated
+   using (true);
+
+   create policy "Escrita apenas para administradores"
+   on epi_records for all
+   to authenticated
+   using (
+     exists (
+       select 1 from public.profiles
+       where profiles.id = auth.uid()
+       and profiles.role = 'ADMIN'
+     )
+   )
+   with check (
+     exists (
+       select 1 from public.profiles
+       where profiles.id = auth.uid()
+       and profiles.role = 'ADMIN'
+     )
+   );
+============================================================ */
+
+const SUPABASE_CONFIG = {
+  enabled: false,
+  url: "https://SEU-PROJETO.supabase.co",
+  anonKey: "SUA_CHAVE_ANONIMA_PUBLICA",
+  tables: {
+    stock: "epi_stock",
+    records: "epi_records",
+    epcs: "epc_inventory",
+    movements: "epc_movements"
+  }
+};
+
+let supabaseClient = null;
+
+function initSupabase() {
+  if (!SUPABASE_CONFIG.enabled) return;
+
+  if (!window.supabase) {
+    updateSyncStatus("Biblioteca Supabase não carregada", false);
+    return;
+  }
+
+  try {
+    supabaseClient = window.supabase.createClient(
+      SUPABASE_CONFIG.url,
+      SUPABASE_CONFIG.anonKey
+    );
+
+    updateSyncStatus("Supabase ligado", true);
+    subscribeRealtime();
+  } catch (error) {
+    updateSyncStatus("Supabase não configurado", false);
+  }
+}
+
+function updateSyncStatus(text, online) {
+  $("syncText").textContent = text;
+  $("syncChip").classList.toggle("online", Boolean(online));
+}
+
+function subscribeRealtime() {
+  if (!supabaseClient) return;
+
+  Object.values(SUPABASE_CONFIG.tables).forEach((table) => {
+    supabaseClient
+      .channel(`realtime:${table}`)
+      .on("postgres_changes", { event: "*", schema: "public", table }, () => {
+        loadFromSupabase();
+      })
+      .subscribe();
+  });
+}
+
+async function saveToSupabase() {
+  if (!supabaseClient) return;
+
+  try {
+    await supabaseClient.from(SUPABASE_CONFIG.tables.stock).upsert(dbStock);
+    await supabaseClient.from(SUPABASE_CONFIG.tables.records).upsert(registros);
+    await supabaseClient.from(SUPABASE_CONFIG.tables.epcs).upsert(epcs);
+    await supabaseClient.from(SUPABASE_CONFIG.tables.movements).upsert(movEPC);
+  } catch (error) {
+    updateSyncStatus("Erro de sincronização", false);
+  }
+}
+
+async function loadFromSupabase() {
+  if (!supabaseClient) return;
+
+  try {
+    const stock = await supabaseClient.from(SUPABASE_CONFIG.tables.stock).select("*");
+    const records = await supabaseClient.from(SUPABASE_CONFIG.tables.records).select("*");
+    const epcsData = await supabaseClient.from(SUPABASE_CONFIG.tables.epcs).select("*");
+    const movements = await supabaseClient.from(SUPABASE_CONFIG.tables.movements).select("*");
+
+    if (stock.data) dbStock = stock.data;
+    if (records.data) registros = records.data;
+    if (epcsData.data) epcs = epcsData.data;
+    if (movements.data) movEPC = movements.data;
+
+    saveAll();
+    renderAll();
+  } catch (error) {
+    updateSyncStatus("Erro ao carregar dados", false);
+  }
+}
+
+/* ============================================================
+   UTILIZADORES E PERMISSÕES
+============================================================ */
+
+const USERS = {
+  ADMIN: {
+    email: "admnhst@gmail.com",
+    password: "1234",
+    name: "Administrador HST",
+    role: "ADMIN",
+    canWrite: true
+  },
+  DIRECAO: {
+    email: "saidashst@gmail.com",
+    password: "1234",
+    name: "Direcção",
+    role: "DIRECAO",
+    canWrite: false
+  }
+};
+
+/* ============================================================
+   DEPARTAMENTOS E SECTORES
+============================================================ */
+
+const DEPTS = {
+  MAN: "Manutenção Industrial",
+  ASS: "Assistência Técnica",
+  CON: "Construção e Obras",
+  ELE: "Electricidade e Automação",
+  MEC: "Mecânica e Hidráulica",
+  LOG: "Logística e Armazém",
+  HST: "Higiene, Segurança e Trabalho",
+  ADM: "Administração e Suporte"
+};
+
+const SETORES = {
+  MAN: [
+    "Manutenção Preventiva",
+    "Manutenção Correctiva",
+    "Oficina Central",
+    "Manutenção de Equipamentos Pesados",
+    "Planeamento de Manutenção"
+  ],
+  ASS: [
+    "Assistência Técnica em Campo",
+    "Instalação e Comissionamento",
+    "Reparação de Equipamentos",
+    "Suporte Técnico a Clientes",
+    "Diagnóstico e Ensaios"
+  ],
+  CON: [
+    "Construção Civil",
+    "Construção Metálica",
+    "Obras de Infraestrutura",
+    "Montagem Industrial",
+    "Fiscalização de Obras"
+  ],
+  ELE: [
+    "Instalações Elétricas",
+    "Painéis e Quadros Elétricos",
+    "Automação e Controlo",
+    "Manutenção Elétrica",
+    "Ensaios e Comissionamento"
+  ],
+  MEC: [
+    "Bombas e Compressores",
+    "Sistemas Hidráulicos",
+    "Soldadura e Caldeiraria",
+    "Alinhamento e Vibrações",
+    "Recauchutagem e Lubrificação"
+  ],
+  LOG: [
+    "Armazém Central",
+    "Compras e Aprovisionamento",
+    "Gestão de Frotas",
+    "Expedição e Distribuição",
+    "Controlo de Stock"
+  ],
+  HST: [
+    "Segurança do Trabalho",
+    "Saúde Ocupacional",
+    "Ambiente e Sustentabilidade",
+    "Formação e Sensibilização",
+    "Inspeção e Auditoria"
+  ],
+  ADM: [
+    "Recursos Humanos",
+    "Financeiro",
+    "Qualidade",
+    "Tecnologias de Informação",
+    "Direcção Geral"
+  ]
+};
+
+/* ============================================================
+   DADOS INICIAIS
+============================================================ */
+
+const VESTUARIO = ["S", "M", "L", "XL", "XXL", "XXXL"];
+const CALCADO = ["36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"];
+const UNICO = ["Único"];
+
+const itemEPI = (id, nome, qtd, max, tipos, tamanhos) => ({ id, nome, qtd, max, tipos, tamanhos });
+const itemEPC = (id, nome, local, qtd, min) => ({ id, nome, local, qtd, min });
+
+const EPI_INICIAL = [
+  itemEPI(1, "Capacete de Proteção", 120, 150, ["Branco", "Amarelo", "Azul"], UNICO),
+  itemEPI(2, "Botas de Segurança", 180, 200, ["Biqueira de Aço", "Couro", "Impermeável"], CALCADO),
+  itemEPI(3, "Luvas de Proteção", 350, 400, ["Mecânicas", "Isolantes Elétricas", "Couro", "Anti-corte", "Térmicas"], ["M", "L", "XL"]),
+  itemEPI(4, "Óculos de Proteção", 100, 120, ["Transparentes", "Escuros"], UNICO),
+  itemEPI(5, "Fato de Trabalho", 220, 250, ["Azul-Refletor", "Cinza-Refletor"], VESTUARIO),
+  itemEPI(6, "Protetor Auricular", 180, 200, ["Abafador", "Tampões"], UNICO),
+  itemEPI(7, "Colete Refletor", 150, 180, ["Amarelo", "Laranja"], VESTUARIO),
+  itemEPI(8, "Capa de Chuva", 80, 100, ["Amarela", "Azul"], ["L", "XL", "XXL"]),
+  itemEPI(9, "Máscara Respiratória", 400, 500, ["PFF2", "Full-Face Soldadura"], UNICO),
+  itemEPI(10, "Cinto de Segurança", 40, 50, ["Arnês Corporal Completo"], UNICO)
+];
+
+const EPC_INICIAL = [
+  itemEPC(1, "Extintor de pó químico 9 kg", "Armazém central", 25, 8),
+  itemEPC(2, "Cone de sinalização", "Armazém central", 80, 20),
+  itemEPC(3, "Fita de balizamento", "Armazém central", 40, 10),
+  itemEPC(4, "Guarda-corpo modular", "Oficina central", 15, 5),
+  itemEPC(5, "Kit de primeiros socorros", "Posto médico", 18, 6),
+  itemEPC(6, "Lava-olhos de emergência", "Posto médico", 8, 3),
+  itemEPC(7, "Sinal de segurança", "Armazém central", 90, 25),
+  itemEPC(8, "Barreira de proteção", "Oficina central", 20, 6)
+];
+
+const CAMPOS_ACIDENTE = [];
+
+/* ============================================================
+   ESTADO
+============================================================ */
+
+let dbStock = loadData(STORAGE_KEYS.stock, EPI_INICIAL);
+let registros = loadData(STORAGE_KEYS.records, []);
+let epcs = loadData(STORAGE_KEYS.epcs, EPC_INICIAL);
+let movEPC = loadData(STORAGE_KEYS.movements, []);
+let charts = {};
+let currentUser = null;
+
+/* ============================================================
+   UTILITÁRIOS
+============================================================ */
+
+const $ = (id) => document.getElementById(id);
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[char]));
+}
+
+function cloneValue(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function loadData(key, defaultValue) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : cloneValue(defaultValue);
+  } catch (error) {
+    return cloneValue(defaultValue);
+  }
+}
+
+function saveAll() {
+  localStorage.setItem(STORAGE_KEYS.stock, JSON.stringify(dbStock));
+  localStorage.setItem(STORAGE_KEYS.records, JSON.stringify(registros));
+  localStorage.setItem(STORAGE_KEYS.epcs, JSON.stringify(epcs));
+  localStorage.setItem(STORAGE_KEYS.movements, JSON.stringify(movEPC));
+
+  saveToSupabase();
+}
+
+function getValue(id) {
+  const element = $(id);
+  return element ? element.value.trim() : "";
+}
+
+function pad(number) {
+  return String(number).padStart(2, "0");
+}
+
+function todayISO() {
+  const now = new Date();
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
+function formatDate(dateValue) {
+  const parts = String(dateValue || "").split("-");
+  return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : (dateValue || "-");
+}
+
+function formatFullDate() {
+  return new Intl.DateTimeFormat("pt-PT", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  }).format(new Date());
+}
+
+function sumQuantities(items) {
+  return items.reduce((total, item) => total + Number(item.qtd || 0), 0);
+}
+
+function initials(name) {
+  return String(name || "AD")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("") || "AD";
+}
+
+function notify(title, message, type = "success") {
+  const iconMap = { success: "✓", warning: "!", error: "×", info: "i" };
+  const toast = document.createElement("div");
+
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `
+    <div class="toast-icon">${iconMap[type] || "i"}</div>
+    <div>
+      <strong>${escapeHtml(title)}</strong>
+      <span>${escapeHtml(message)}</span>
+    </div>
+  `;
+
+  $("toastContainer").appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateX(18px)";
+    setTimeout(() => toast.remove(), 220);
+  }, 4400);
+}
+
+function confirmAction(title, message, confirmText = "Confirmar", danger = true) {
+  return new Promise((resolve) => {
+    const overlay = $("modalOverlay");
+    const confirmButton = $("modalConfirm");
+    const cancelButton = $("modalCancel");
+
+    $("modalTitle").textContent = title;
+    $("modalMessage").textContent = message;
+    confirmButton.textContent = confirmText;
+    confirmButton.className = `btn ${danger ? "btn-danger" : "btn-yellow"}`;
+
+    overlay.classList.add("show");
+    document.body.classList.add("modal-open");
+
+    const close = (result) => {
+      overlay.classList.remove("show");
+      document.body.classList.remove("modal-open");
+      confirmButton.onclick = null;
+      cancelButton.onclick = null;
+      overlay.onclick = null;
+      resolve(result);
+    };
+
+    confirmButton.onclick = () => close(true);
+    cancelButton.onclick = () => close(false);
+
+    overlay.onclick = (event) => {
+      if (event.target === overlay) close(false);
+    };
+  });
+}
+
+function departmentOptions() {
+  return `<option value="">Selecione...</option>${
+    Object.entries(DEPTS)
+      .map(([code, label]) => `<option value="${code}">${code} - ${escapeHtml(label)}</option>`)
+      .join("")
+  }`;
+}
+
+function populateDepartments() {
+  document.querySelectorAll(".dept-select").forEach((select) => {
+    const previous = select.value;
+    select.innerHTML = departmentOptions();
+
+    if (previous && DEPTS[previous]) select.value = previous;
+  });
+}
+
+function setSectors(departmentId, sectorId) {
+  const department = getValue(departmentId);
+  const list = SETORES[department] || [];
+  const sectorSelect = $(sectorId);
+
+  if (!sectorSelect) return;
+
+  sectorSelect.innerHTML = list.length
+    ? `<option value="">Selecione...</option>${list.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("")}`
+    : `<option value="">Selecione o departamento primeiro</option>`;
+}
+
+function requireWritePermission() {
+  if (!currentUser?.canWrite) {
+    notify("Acesso restrito", "Apenas o Administrador HST pode efectuar movimentações e alterações.", "error");
+    return false;
+  }
+
+  return true;
+}
+
+/* ============================================================
+   LOGIN E NAVEGAÇÃO
+============================================================ */
+
+function fazerLogin(event) {
+  if (event) event.preventDefault();
+
+  const selectedRole = getValue("perfil");
+  const email = getValue("loginEmail").toLowerCase().replace(/\s+/g, "");
+  const password = $("loginSenha").value;
+  const user = USERS[selectedRole];
+
+  if (!user || email !== user.email || password !== user.password) {
+    $("loginError").style.display = "block";
+    $("loginSenha").focus();
+    return;
+  }
+
+  currentUser = user;
+
+  $("loginPage").style.display = "none";
+  $("app").style.display = "block";
+  $("loginError").style.display = "none";
+
+  $("loggedUser").textContent = `${user.name} · ${user.canWrite ? "Acesso total" : "Consulta"}`;
+  $("userInitials").textContent = initials(user.name);
+
+  initApp();
+
+  notify(
+    "Sessão iniciada",
+    `Bem-vindo, ${user.name}. ${user.canWrite ? "Tem permissões de administração." : "Tem acesso de consulta e acompanhamento."}`,
+    "success"
+  );
+}
+
+function sairSistema() {
+  currentUser = null;
+
+  $("app").style.display = "none";
+  $("loginPage").style.display = "flex";
+  $("loginSenha").value = "";
+  $("loginError").style.display = "none";
+
+  destroyCharts();
+
+  notify("Sessão terminada", "Saiu do sistema com sucesso.", "info");
+}
+
+function initTabs() {
+  document.querySelectorAll(".tab-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      const tabId = button.dataset.tab;
+
+      document.querySelectorAll(".tab-btn").forEach((item) => item.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach((item) => item.classList.remove("active"));
+
+      button.classList.add("active");
+      $(tabId).classList.add("active");
+
+      if (tabId === "abaEPI") setTimeout(renderCharts, 50);
+    });
+  });
+}
+
+function initApp() {
+  $("systemDate").textContent = formatFullDate();
+
+  populateDepartments();
+
+  $("depart").onchange = () => setSectors("depart", "setor");
+  $("dataRec").onchange = calculateNextDate;
+
+  $("dataRec").value = todayISO();
+  $("sData").value = todayISO();
+
+  calculateNextDate();
+  renderEPIs();
+  renderEPC();
+  renderAll();
+
+  if (!currentUser?.canWrite) {
+    disableWriteControls();
+  }
+
+  initSupabase();
+}
+
+function disableWriteControls() {
+  [
+    "nome", "mec", "depart", "setor", "dataRec",
+    "epcNome", "epcLocal", "epcQtd", "epcMin",
+    "sEpc", "sQtd", "sResp", "sDept", "sDest", "sData", "sMot"
+  ].forEach((id) => {
+    const element = $(id);
+    if (element) element.disabled = true;
+  });
+
+  document.querySelectorAll(".btn-primary, .btn-yellow").forEach((button) => {
+    if (!button.id.includes("PDF") && button.textContent.toUpperCase().includes("REGISTAR")) {
+      button.disabled = true;
+    }
+  });
+}
+
+/* ============================================================
+   EPI
+============================================================ */
+
+function calculateNextDate() {
+  const dateValue = getValue("dataRec");
+
+  if (!dateValue) {
+    $("proximaData").value = "";
+    return;
+  }
+
+  const date = new Date(`${dateValue}T00:00:00`);
+  date.setMonth(date.getMonth() + 6);
+
+  $("proximaData").value = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function renderEPIs() {
+  $("listaEPI").innerHTML = dbStock.map((item) => `
+    <article class="equipment-card" id="card-${item.id}">
+      <label class="equipment-header">
+        <input type="checkbox" class="epi-check" value="${item.id}" onchange="toggleEpiCard(${item.id}, this.checked)">
+        <span>${escapeHtml(item.nome)}</span>
+        <small class="equipment-stock">Stock: ${item.qtd}</small>
+      </label>
+
+      <div class="equipment-fields">
+        <div>
+          <label for="qtd-${item.id}">Qtd.</label>
+          <input id="qtd-${item.id}" type="number" min="1" max="${item.qtd}" value="1">
+        </div>
+
+        <div>
+          <label for="tipo-${item.id}">Tipo</label>
+          <select id="tipo-${item.id}">
+            ${item.tipos.map((type) => `<option value="${escapeHtml(type)}">${escapeHtml(type)}</option>`).join("")}
+          </select>
+        </div>
+
+        <div>
+          <label for="tam-${item.id}">Tamanho</label>
+          <select id="tam-${item.id}">
+            ${item.tamanhos.map((size) => `<option value="${escapeHtml(size)}">${escapeHtml(size)}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+    </article>
+  `).join("");
+}
+
+function toggleEpiCard(id, checked) {
+  const card = $(`card-${id}`);
+  if (card) card.classList.toggle("selected", checked);
+}
+
+function validateDelivery() {
+  if (!requireWritePermission()) return null;
+
+  const nome = getValue("nome");
+  const mec = getValue("mec");
+  const dept = getValue("depart");
+  const setor = getValue("setor");
+  const data = getValue("dataRec");
+
+  if (!nome || !mec || !dept || !setor || !data) {
+    notify("Dados incompletos", "Preencha nome, número mecanográfico, departamento, sector e data.", "warning");
+    return null;
+  }
+
+  const selectedItems = [];
+  const errors = [];
+
+  document.querySelectorAll(".epi-check:checked").forEach((checkbox) => {
+    const id = Number(checkbox.value);
+    const stockItem = dbStock.find((item) => item.id === id);
+    const quantity = Number($(`qtd-${id}`).value);
+
+    if (!stockItem) return;
+
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      errors.push(`Quantidade inválida para ${stockItem.nome}.`);
+      return;
+    }
+
+    if (quantity > stockItem.qtd) {
+      errors.push(`Stock insuficiente para ${stockItem.nome}. Disponível: ${stockItem.qtd}.`);
+      return;
+    }
+
+    selectedItems.push({
+      id,
+      nome: stockItem.nome,
+      qtd: quantity,
+      tipo: getValue(`tipo-${id}`),
+      tam: getValue(`tam-${id}`)
+    });
+  });
+
+  if (errors.length) {
+    notify("Validação de stock", errors.join(" "), "error");
+    return null;
+  }
+
+  if (!selectedItems.length) {
+    notify("Nenhum equipamento", "Selecione pelo menos um equipamento de proteção individual.", "warning");
+    return null;
+  }
+
+  selectedItems.forEach((selected) => {
+    const stockItem = dbStock.find((item) => item.id === selected.id);
+    stockItem.qtd -= selected.qtd;
+    delete selected.id;
+  });
+
+  return {
+    id: Date.now(),
+    data,
+    proximaData: getValue("proximaData"),
+    nome,
+    mec,
+    dept,
+    setor,
+    itens: selectedItems,
+    created_by: currentUser.email
+  };
+}
+
+function processarEntrega(prepareEmail) {
+  const record = validateDelivery();
+  if (!record) return;
+
+  registros.unshift(record);
+  saveAll();
+  renderAll();
+
+  if (prepareEmail) {
+    enviarGuiaEmail(record);
+  } else {
+    fichaEPIPDF(record);
+  }
+
+  resetEPIForm();
+
+  notify("Entrega registada", `A entrega de EPI para ${record.nome} foi registada com sucesso.`, "success");
+}
+
+function resetEPIForm() {
+  $("nome").value = "";
+  $("mec").value = "";
+  $("depart").value = "";
+  setSectors("depart", "setor");
+
+  document.querySelectorAll(".epi-check").forEach((checkbox) => {
+    checkbox.checked = false;
+  });
+
+  document.querySelectorAll(".equipment-card").forEach((card) => {
+    card.classList.remove("selected");
+  });
+
+  document.querySelectorAll(".equipment-card input[type='number']").forEach((input) => {
+    input.value = 1;
+  });
+
+  $("dataRec").value = todayISO();
+  calculateNextDate();
+}
+
+function reporStock(id) {
+  if (!requireWritePermission()) return;
+
+  const item = dbStock.find((stockItem) => stockItem.id === id);
+  if (!item) return;
+
+  const input = prompt(`Quantidade a adicionar para "${item.nome}":`);
+  if (input === null) return;
+
+  const quantity = Number(input);
+
+  if (!Number.isInteger(quantity) || quantity <= 0) {
+    notify("Quantidade inválida", "Introduza um número inteiro maior que zero.", "warning");
+    return;
+  }
+
+  item.qtd += quantity;
+  saveAll();
+  renderAll();
+  renderEPIs();
+
+  notify("Stock atualizado", `${quantity} unidade(s) adicionada(s) a ${item.nome}.`, "success");
+}
+
+async function limparHistorico() {
+  if (!requireWritePermission()) return;
+
+  if (!registros.length) {
+    notify("Sem histórico", "Não existem levantamentos de EPI para limpar.", "info");
+    return;
+  }
+
+  const approved = await confirmAction(
+    "Limpar histórico de EPI",
+    "Esta ação remove apenas o histórico de levantamentos. As quantidades de stock não serão restauradas.",
+    "Limpar histórico",
+    true
+  );
+
+  if (!approved) return;
+
+  registros = [];
+  saveAll();
+  renderAll();
+
+  notify("Histórico removido", "O histórico de levantamentos de EPI foi limpo.", "success");
+}
+
+/* ============================================================
+   EPC
+============================================================ */
+
+function cadastrarEPC() {
+  if (!requireWritePermission()) return;
+
+  const nome = getValue("epcNome");
+  const local = getValue("epcLocal");
+  const qtd = Number($("epcQtd").value);
+  const min = Number($("epcMin").value);
+
+  if (!nome || !local) {
+    notify("Dados incompletos", "Preencha o nome e o local de armazenamento.", "warning");
+    return;
+  }
+
+  if (!Number.isInteger(qtd) || qtd < 0 || !Number.isInteger(min) || min < 0) {
+    notify("Valores inválidos", "Utilize quantidades inteiras iguais ou superiores a zero.", "warning");
+    return;
+  }
+
+  if (epcs.some((item) => item.nome.toLowerCase() === nome.toLowerCase())) {
+    notify("Equipamento duplicado", "Já existe um EPC cadastrado com este nome.", "warning");
+    return;
+  }
+
+  epcs.push(itemEPC(Date.now(), nome, local, qtd, min));
+  saveAll();
+  renderEPC();
+  renderAll();
+
+  $("epcNome").value = "";
+  $("epcLocal").value = "";
+  $("epcQtd").value = 0;
+  $("epcMin").value = 5;
+
+  notify("EPC cadastrado", `${nome} foi adicionado ao inventário.`, "success");
+}
+
+function addEPCMovement(data) {
+  movEPC.unshift({
+    id: Date.now(),
+    data: data.data || todayISO(),
+    tipo: data.tipo,
+    nome: data.nome,
+    qtd: Number(data.qtd),
+    resp: data.resp || currentUser?.name || "Administrador",
+    dept: data.dept || "Armazém",
+    destino: data.destino || "Stock",
+    motivo: data.motivo || "-",
+    created_by: currentUser?.email || "sistema"
+  });
+}
+
+function renderEPC() {
+  $("tbEPC").innerHTML = epcs.length
+    ? epcs.map((item) => {
+        const low = item.qtd <= item.min;
+
+        return `
+          <tr>
+            <td><span class="table-name">${escapeHtml(item.nome)}</span></td>
+            <td>${escapeHtml(item.local)}</td>
+            <td><strong>${item.qtd}</strong></td>
+            <td>${item.min}</td>
+            <td><span class="badge ${low ? "badge-danger" : "badge-ok"}">${low ? "STOCK BAIXO" : "DISPONÍVEL"}</span></td>
+            <td style="white-space:nowrap">
+              <button class="btn btn-yellow btn-small" type="button" onclick="reporEPC(${item.id})">Repor</button>
+              <button class="btn btn-danger btn-small" type="button" onclick="removerEPC(${item.id})">Remover</button>
+            </td>
+          </tr>
+        `;
+      }).join("")
+    : `<tr><td colspan="6" class="empty">Nenhum EPC cadastrado.</td></tr>`;
+
+  $("sEpc").innerHTML = `
+    <option value="">Selecione...</option>
+    ${epcs.map((item) => `<option value="${item.id}">${escapeHtml(item.nome)} | Stock: ${item.qtd}</option>`).join("")}
+  `;
+
+  $("tbMovEPC").innerHTML = movEPC.length
+    ? movEPC.slice(0, 150).map((movement) => `
+        <tr>
+          <td>${formatDate(movement.data)}</td>
+          <td><span class="badge ${movement.tipo === "SAÍDA" ? "badge-danger" : "badge-ok"}">${escapeHtml(movement.tipo)}</span></td>
+          <td>${escapeHtml(movement.nome)}</td>
+          <td>${movement.qtd}</td>
+          <td>${escapeHtml(movement.resp)}</td>
+          <td>${escapeHtml(DEPTS[movement.dept] || movement.dept)}</td>
+          <td>${escapeHtml(movement.destino)}</td>
+          <td>${escapeHtml(movement.motivo)}</td>
+        </tr>
+      `).join("")
+    : `<tr><td colspan="8" class="empty">Nenhum movimento de EPC registado.</td></tr>`;
+}
+
+function reporEPC(id) {
+  if (!requireWritePermission()) return;
+
+  const item = epcs.find((epc) => epc.id === id);
+  if (!item) return;
+
+  const input = prompt(`Quantidade a adicionar para "${item.nome}":`);
+  if (input === null) return;
+
+  const quantity = Number(input);
+
+  if (!Number.isInteger(quantity) || quantity <= 0) {
+    notify("Quantidade inválida", "Introduza um número inteiro maior que zero.", "warning");
+    return;
+  }
+
+  item.qtd += quantity;
+
+  addEPCMovement({
+    tipo: "ENTRADA",
+    nome: item.nome,
+    qtd: quantity,
+    dept: "LOG",
+    destino: item.local,
+    motivo: "Reposição de stock"
+  });
+
+  saveAll();
+  renderEPC();
+  renderAll();
+
+  notify("Reposição registada", `${quantity} unidade(s) adicionada(s) a ${item.nome}.`, "success");
+}
+
+async function removerEPC(id) {
+  if (!requireWritePermission()) return;
+
+  const item = epcs.find((epc) => epc.id === id);
+  if (!item) return;
+
+  const approved = await confirmAction(
+    "Remover EPC",
+    `Pretende remover "${item.nome}" do inventário?`,
+    "Remover",
+    true
+  );
+
+  if (!approved) return;
+
+  epcs = epcs.filter((epc) => epc.id !== id);
+  saveAll();
+  renderEPC();
+  renderAll();
+
+  notify("EPC removido", `${item.nome} foi removido do inventário ativo.`, "success");
+}
+
+function registarSaidaEPC() {
+  if (!requireWritePermission()) return;
+
+  const item = epcs.find((epc) => epc.id === Number(getValue("sEpc")));
+  const quantity = Number($("sQtd").value);
+  const responsavel = getValue("sResp");
+  const departamento = getValue("sDept");
+  const destino = getValue("sDest");
+  const data = getValue("sData");
+  const motivo = getValue("sMot");
+
+  if (!item) {
+    notify("Equipamento não selecionado", "Selecione o EPC a movimentar.", "warning");
+    return;
+  }
+
+  if (!Number.isInteger(quantity) || quantity <= 0) {
+    notify("Quantidade inválida", "Introduza uma quantidade inteira válida.", "warning");
+    return;
+  }
+
+  if (quantity > item.qtd) {
+    notify("Stock insuficiente", `Disponível para ${item.nome}: ${item.qtd}.`, "error");
+    return;
+  }
+
+  if (!responsavel || !departamento || !destino || !data || !motivo) {
+    notify("Dados incompletos", "Preencha todos os campos do registo de saída.", "warning");
+    return;
+  }
+
+  item.qtd -= quantity;
+
+  addEPCMovement({
+    data,
+    tipo: "SAÍDA",
+    nome: item.nome,
+    qtd: quantity,
+    resp: responsavel,
+    dept: departamento,
+    destino,
+    motivo
+  });
+
+  saveAll();
+  renderEPC();
+  renderAll();
+
+  $("sEpc").value = "";
+  $("sQtd").value = 1;
+  $("sResp").value = "";
+  $("sDept").value = "";
+  $("sDest").value = "";
+  $("sData").value = todayISO();
+  $("sMot").value = "";
+
+  notify("Saída registada", `Foram registadas ${quantity} unidade(s) de ${item.nome}.`, "success");
+}
+
+async function limparEPC() {
+  if (!requireWritePermission()) return;
+
+  if (!movEPC.length) {
+    notify("Sem histórico", "Não existem movimentos de EPC para limpar.", "info");
+    return;
+  }
+
+  const approved = await confirmAction(
+    "Limpar movimentos de EPC",
+    "Esta ação remove o histórico de entradas e saídas de EPC, mas não altera as quantidades atuais do inventário.",
+    "Limpar histórico",
+    true
+  );
+
+  if (!approved) return;
+
+  movEPC = [];
+  saveAll();
+  renderEPC();
+  renderAll();
+
+  notify("Histórico removido", "O histórico de movimentos de EPC foi limpo.", "success");
+}
+
+/* ============================================================
+   DASHBOARD E GRÁFICOS
+============================================================ */
+
+function renderAll() {
+  renderStockTable();
+  renderHistoryTable();
+  renderEPC();
+  renderMetrics();
+  renderCharts();
+}
+
+function renderMetrics() {
+  $("mLev").textContent = registros.length;
+  $("mEqp").textContent = registros.reduce((total, record) => total + sumQuantities(record.itens), 0);
+  $("mEpc").textContent = movEPC.filter((movement) => movement.tipo === "SAÍDA").length;
+  $("mEpcStock").textContent = epcs.reduce((total, item) => total + Number(item.qtd || 0), 0);
+}
+
+function itensEPIConsolidados(record) {
+  return record.itens
+    .map((item) => `${item.nome} | ${item.tipo} | Tam. ${item.tam} | Qtd. ${item.qtd}`)
+    .join(" • ");
+}
+
+function renderStockTable() {
+  $("tbStock").innerHTML = dbStock.map((item) => {
+    const percentage = Math.max(0, Math.min(100, (item.qtd / item.max) * 100));
+    const low = percentage < 25;
+    const medium = percentage >= 25 && percentage < 50;
+
+    const color = low ? "var(--danger)" : medium ? "var(--warning)" : "var(--navy-700)";
+    const status = low ? "REABASTECER" : medium ? "ATENÇÃO" : "OK";
+    const badgeClass = low ? "badge-danger" : medium ? "badge-warning" : "badge-ok";
+
+    return `
+      <tr>
+        <td><span class="table-name">${escapeHtml(item.nome)}</span></td>
+        <td>
+          <div class="stock-level">
+            <div class="stock-progress"><div style="width:${percentage}%;background:${color}"></div></div>
+            <span class="stock-percent">${percentage.toFixed(0)}%</span>
+          </div>
+        </td>
+        <td><strong>${item.qtd}</strong><span class="table-sub">de ${item.max}</span></td>
+        <td><span class="badge ${badgeClass}">${status}</span></td>
+        <td>
+          <button class="btn btn-yellow btn-small" type="button" onclick="reporStock(${item.id})">+ Stock</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function renderHistoryTable() {
+  $("tbRel").innerHTML = registros.length
+    ? registros.slice(0, 80).map((record) => `
+        <tr>
+          <td>${formatDate(record.data)}</td>
+          <td>
+            <span class="table-name">${escapeHtml(record.nome)}</span>
+            <span class="table-sub">${escapeHtml(record.mec)} · ${escapeHtml(DEPTS[record.dept] || record.dept)} · ${escapeHtml(record.setor)}</span>
+          </td>
+          <td>${escapeHtml(itensEPIConsolidados(record))}</td>
+        </tr>
+      `).join("")
+    : `<tr><td colspan="3" class="empty">Nenhum levantamento registado.</td></tr>`;
+}
+
+function destroyCharts() {
+  Object.values(charts).forEach((chart) => {
+    if (chart && typeof chart.destroy === "function") chart.destroy();
+  });
+
+  charts = {};
+}
+
+function makeChart(id, config) {
+  const canvas = $(id);
+
+  if (!canvas || typeof Chart === "undefined") return;
+
+  if (charts[id]) charts[id].destroy();
+
+  charts[id] = new Chart(canvas.getContext("2d"), config);
+}
+
+function renderCharts() {
+  if (typeof Chart === "undefined") return;
+  if (!$("abaEPI").classList.contains("active")) return;
+
+  const axisOptions = {
+    beginAtZero: true,
+    ticks: { color: "#647a8d", font: { size: 10 } },
+    grid: { color: "rgba(100,122,141,.18)" }
+  };
+
+  makeChart("chS", {
+    type: "bar",
+    data: {
+      labels: dbStock.map((item) => item.nome.length > 16 ? `${item.nome.slice(0, 16)}…` : item.nome),
+      datasets: [{
+        data: dbStock.map((item) => item.qtd),
+        backgroundColor: "#083767",
+        borderRadius: 5,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: "#647a8d", maxRotation: 55, minRotation: 55, font: { size: 9 } }, grid: { display: false } },
+        y: axisOptions
+      }
+    }
+  });
+
+  const departments = Object.keys(DEPTS);
+  const departmentCounts = departments.map((department) => registros.filter((record) => record.dept === department).length);
+
+  makeChart("chD", {
+    type: "doughnut",
+    data: {
+      labels: departments,
+      datasets: [{
+        data: departmentCounts.some((value) => value > 0) ? departmentCounts : departments.map(() => 1),
+        backgroundColor: ["#041e3d", "#062a52", "#083767", "#0d4a86", "#145da5", "#ffc400", "#d9a300", "#a8c0d6"],
+        borderColor: "#ffffff",
+        borderWidth: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "60%",
+      plugins: {
+        legend: { position: "bottom", labels: { boxWidth: 11, padding: 10, color: "#647a8d", font: { size: 9 } } }
+      }
+    }
+  });
+
+  const monthlyConsumption = new Array(12).fill(0);
+
+  registros.forEach((record) => {
+    const date = new Date(`${record.data}T00:00:00`);
+    if (!Number.isNaN(date.getTime())) {
+      monthlyConsumption[date.getMonth()] += sumQuantities(record.itens);
+    }
+  });
+
+  makeChart("chM", {
+    type: "line",
+    data: {
+      labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
+      datasets: [{
+        label: "Itens entregues",
+        data: monthlyConsumption,
+        borderColor: "#d9a300",
+        backgroundColor: "rgba(255,196,0,.22)",
+        borderWidth: 3,
+        fill: true,
+        tension: .36,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        pointBackgroundColor: "#ffc400"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: "#647a8d", font: { size: 10 } } } },
+      scales: {
+        x: { ticks: { color: "#647a8d", font: { size: 10 } }, grid: { display: false } },
+        y: axisOptions
+      }
+    }
+  });
+}
+
+/* ============================================================
+   PDF
+============================================================ */
+
+function loadLogo(callback) {
+  const image = new Image();
+  image.onload = () => callback(image);
+  image.onerror = () => callback(null);
+  image.src = "logo_Cimertex.jpeg";
+}
+
+function addImageSafe(doc, image, x, y, maxWidth, maxHeight) {
+  if (!image || !image.width || !image.height) return 0;
+
+  try {
+    const ratio = image.width / image.height;
+    let width = maxWidth;
+    let height = width / ratio;
+
+    if (height > maxHeight) {
+      height = maxHeight;
+      width = height * ratio;
+    }
+
+    doc.addImage(image, "JPEG", x, y, width, height);
+    return width;
+  } catch (error) {
+    return 0;
+  }
+}
+
+function generatePdf(title, sections, filename, orientation = "l", footerCallback) {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    notify("Biblioteca indisponível", "Não foi possível carregar jsPDF. Verifique a ligação à internet.", "error");
+    return;
+  }
+
+  loadLogo((image) => {
+    const doc = new window.jspdf.jsPDF(orientation, "mm", "a4");
+    const width = orientation === "p" ? 210 : 297;
+    const height = orientation === "p" ? 297 : 210;
+
+    const drawHeader = () => {
+      doc.setFillColor(4, 30, 61);
+      doc.rect(0, 0, width, 34, "F");
+
+      addImageSafe(doc, image, 10, 6, 48, 22);
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(13);
+      doc.text("CIMERTEX ANGOLA", width - 10, 13.5, { align: "right" });
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.text(title, width - 10, 20.5, { align: "right" });
+
+      doc.setTextColor(255, 196, 0);
+      doc.setFontSize(7.4);
+      doc.text(`Emitido em ${formatDate(todayISO())}`, width - 10, 27, { align: "right" });
+
+      doc.setFillColor(255, 196, 0);
+      doc.rect(0, 31.5, width, 2.5, "F");
+    };
+
+    let y = 43;
+
+    sections.forEach((section) => {
+      if (y > height - 45) {
+        doc.addPage();
+        y = 43;
+      }
+
+      if (section.subtitle) {
+        doc.setTextColor(4, 30, 61);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.text(section.subtitle, 10, y);
+        y += 3.5;
+      }
+
+      doc.autoTable({
+        startY: y,
+        head: [section.columns],
+        body: section.rows.length ? section.rows : [["Sem registos"]],
+        theme: "grid",
+        margin: { top: 41, left: 10, right: 10, bottom: 20 },
+        headStyles: { fillColor: [4, 30, 61], textColor: 255, fontSize: 7.8, halign: "center", cellPadding: 2.1 },
+        bodyStyles: { fontSize: 7.5, cellPadding: 2.1, textColor: [19, 44, 68], valign: "top" },
+        alternateRowStyles: { fillColor: [243, 247, 251] },
+        columnStyles: section.styles || {},
+        didDrawPage: drawHeader
+      });
+
+      y = doc.lastAutoTable.finalY + 10;
+    });
+
+    if (footerCallback) {
+      if (y > height - 60) {
+        doc.addPage();
+        drawHeader();
+        y = 58;
+      }
+
+      footerCallback(doc, y, width);
+    }
+
+    const pageCount = doc.getNumberOfPages();
+
+    for (let page = 1; page <= pageCount; page += 1) {
+      doc.setPage(page);
+
+      doc.setDrawColor(255, 196, 0);
+      doc.setLineWidth(.5);
+      doc.line(10, height - 14, width - 10, height - 14);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.3);
+      doc.setTextColor(100, 122, 141);
+
+      doc.text("Cimertex Angola — EPI-Manager | Gestão de Segurança", 10, height - 8);
+      doc.text(`Página ${page} de ${pageCount}`, width - 10, height - 8, { align: "right" });
+    }
+
+    doc.save(filename);
+  });
+}
+
+function signatureLines(firstLabel, secondLabel) {
+  return (doc, y, width) => {
+    doc.setDrawColor(40, 40, 40);
+    doc.setTextColor(19, 44, 68);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+
+    const x1 = width * .27;
+    const x2 = width * .73;
+
+    doc.line(x1 - 38, y + 14, x1 + 38, y + 14);
+    doc.line(x2 - 38, y + 14, x2 + 38, y + 14);
+
+    doc.text(firstLabel, x1, y + 20, { align: "center" });
+    doc.text(secondLabel, x2, y + 20, { align: "center" });
+  };
+}
+
+function epiReportRows() {
+  return registros.map((record) => [
+    formatDate(record.data),
+    record.nome,
+    record.mec,
+    DEPTS[record.dept] || record.dept,
+    record.setor,
+    itensEPIConsolidados(record)
+  ]);
+}
+
+function epcMovementReportRows() {
+  return movEPC.map((movement) => [
+    formatDate(movement.data),
+    movement.tipo,
+    movement.nome,
+    String(movement.qtd),
+    movement.resp,
+    DEPTS[movement.dept] || movement.dept,
+    movement.destino,
+    movement.motivo
+  ]);
+}
+
+const EPI_REPORT_COLUMNS = [
+  "Data",
+  "Colaborador",
+  "Nº Mec.",
+  "Departamento",
+  "Sector",
+  "Equipamentos entregues"
+];
+
+const EPC_REPORT_COLUMNS = [
+  "Data",
+  "Movimento",
+  "Equipamento",
+  "Qtd.",
+  "Responsável",
+  "Departamento",
+  "Destino",
+  "Motivo"
+];
+
+function relSaidasPDF() {
+  if (!registros.length && !movEPC.length) {
+    notify("Sem movimentos", "Não existem históricos de EPI ou EPC para gerar o relatório consolidado.", "info");
+    return;
+  }
+
+  generatePdf(
+    "RELATÓRIO CONSOLIDADO DE EPI E EPC",
+    [
+      {
+        subtitle: "Histórico de saídas de EPI",
+        columns: EPI_REPORT_COLUMNS,
+        rows: epiReportRows(),
+        styles: { 0: { cellWidth: 20 }, 1: { cellWidth: 34 }, 2: { cellWidth: 20 }, 3: { cellWidth: 37 }, 4: { cellWidth: 35 }, 5: { cellWidth: 131 } }
+      },
+      {
+        subtitle: "Histórico de movimentos de EPC",
+        columns: EPC_REPORT_COLUMNS,
+        rows: epcMovementReportRows(),
+        styles: { 0: { cellWidth: 18 }, 1: { cellWidth: 19 }, 2: { cellWidth: 36 }, 3: { cellWidth: 12 }, 4: { cellWidth: 30 }, 5: { cellWidth: 38 }, 6: { cellWidth: 32 }, 7: { cellWidth: 62 } }
+      }
+    ],
+    `Relatorio_Consolidado_EPI_EPC_${todayISO()}.pdf`,
+    "l"
+  );
+}
+
+function relEPIPDF() {
+  if (!registros.length) {
+    notify("Sem levantamentos", "Não existem levantamentos de EPI para gerar o relatório.", "info");
+    return;
+  }
+
+  generatePdf(
+    "RELATÓRIO DE SAÍDAS DE EPI",
+    [
+      {
+        subtitle: "Histórico de levantamentos de EPI",
+        columns: EPI_REPORT_COLUMNS,
+        rows: epiReportRows(),
+        styles: { 0: { cellWidth: 22 }, 1: { cellWidth: 39 }, 2: { cellWidth: 22 }, 3: { cellWidth: 41 }, 4: { cellWidth: 38 }, 5: { cellWidth: 115 } }
+      }
+    ],
+    `Relatorio_Saidas_EPI_${todayISO()}.pdf`,
+    "l"
+  );
+}
+
+function invEPIPDF() {
+  generatePdf(
+    "INVENTÁRIO ATUAL DE EPI",
+    [
+      {
+        columns: ["Equipamento", "Quantidade", "Capacidade", "Nível", "Estado"],
+        rows: dbStock.map((item) => {
+          const percentage = (item.qtd / item.max) * 100;
+
+          return [
+            item.nome,
+            String(item.qtd),
+            String(item.max),
+            `${percentage.toFixed(0)}%`,
+            percentage < 25 ? "REABASTECER" : "OK"
+          ];
+        })
+      }
+    ],
+    `Inventario_EPI_${todayISO()}.pdf`,
+    "p"
+  );
+}
+
+function relEPCPDF() {
+  if (!epcs.length) {
+    notify("Sem EPC", "Não existem EPC cadastrados para gerar o relatório.", "info");
+    return;
+  }
+
+  generatePdf(
+    "INVENTÁRIO DE EQUIPAMENTOS DE PROTEÇÃO COLETIVA",
+    [
+      {
+        columns: ["Nº", "Equipamento", "Local", "Stock atual", "Mínimo", "Estado"],
+        rows: epcs.map((item, index) => [
+          String(index + 1),
+          item.nome,
+          item.local,
+          String(item.qtd),
+          String(item.min),
+          item.qtd <= item.min ? "STOCK BAIXO" : "DISPONÍVEL"
+        ])
+      }
+    ],
+    `Inventario_EPC_${todayISO()}.pdf`,
+    "l"
+  );
+}
+
+function relEPCMovPDF() {
+  if (!movEPC.length) {
+    notify("Sem movimentos", "Não existem movimentos de EPC para gerar o relatório.", "info");
+    return;
+  }
+
+  generatePdf(
+    "RELATÓRIO DE MOVIMENTOS DE EPC",
+    [
+      {
+        subtitle: "Histórico de movimentos de equipamento de proteção coletiva",
+        columns: EPC_REPORT_COLUMNS,
+        rows: epcMovementReportRows(),
+        styles: { 0: { cellWidth: 18 }, 1: { cellWidth: 19 }, 2: { cellWidth: 36 }, 3: { cellWidth: 12 }, 4: { cellWidth: 30 }, 5: { cellWidth: 38 }, 6: { cellWidth: 32 }, 7: { cellWidth: 62 } }
+      }
+    ],
+    `Relatorio_Movimentos_EPC_${todayISO()}.pdf`,
+    "l"
+  );
+}
+
+function fichaEPIPDF(record) {
+  generatePdf(
+    "FICHA DE LEVANTAMENTO DE EQUIPAMENTOS DE PROTEÇÃO INDIVIDUAL",
+    [
+      {
+        columns: ["Campo", "Informação"],
+        styles: { 0: { cellWidth: 55, fontStyle: "bold" } },
+        rows: [
+          ["Nome completo", record.nome],
+          ["Nº mecanográfico", record.mec],
+          ["Departamento", DEPTS[record.dept] || record.dept],
+          ["Sector", record.setor],
+          ["Data do levantamento", formatDate(record.data)],
+          ["Próximo levantamento", `${formatDate(record.proximaData)} (periodicidade semestral)`]
+        ]
+      },
+      {
+        subtitle: "Equipamentos entregues",
+        columns: ["Nº", "Equipamento", "Tipo", "Tamanho", "Qtd."],
+        rows: record.itens.map((item, index) => [
+          String(index + 1),
+          item.nome,
+          item.tipo,
+          item.tam,
+          String(item.qtd)
+        ])
+      }
+    ],
+    `Ficha_EPI_${record.mec || "SemMatricula"}_${record.data}.pdf`,
+    "p",
+    signatureLines("Assinatura do Trabalhador", "Responsável de EPI / Segurança")
+  );
+}
+
+/* ============================================================
+   EMAIL
+============================================================ */
+
+function enviarGuiaEmail(record) {
+  const lineBreak = "\r\n";
+
+  const body = [
+    "FICHA DE LEVANTAMENTO DE EPI",
+    "",
+    `Trabalhador: ${record.nome}`,
+    `Nº mecanográfico: ${record.mec}`,
+    `Departamento: ${DEPTS[record.dept] || record.dept}`,
+    `Sector: ${record.setor}`,
+    `Data: ${formatDate(record.data)}`,
+    `Próximo levantamento: ${formatDate(record.proximaData)}`,
+    "",
+    "EQUIPAMENTOS ENTREGUES:",
+    ...record.itens.map((item) => `- ${item.nome} | ${item.tipo} | Tam. ${item.tam} | Qtd. ${item.qtd}`)
+  ].join(lineBreak);
+
+  window.location.href =
+    `mailto:?subject=${encodeURIComponent(`Ficha de Levantamento de EPI - ${record.nome}`)}` +
+    `&body=${encodeURIComponent(body)}`;
+
+  fichaEPIPDF(record);
+
+  notify("Email preparado", "O seu cliente de email foi aberto. Anexe o PDF gerado antes de enviar.", "info");
+}
+
+function enviarRelatorioSaidasEmail() {
+  const lineBreak = "\r\n";
+  const epi = epiReportRows().slice(0, 15);
+  const epc = epcMovementReportRows().slice(0, 15);
+
+  const body = [
+    "RELATÓRIO DE HISTÓRICO DE EPI E EPC",
+    `Data: ${formatDate(todayISO())}`,
+    "",
+    "ÚLTIMOS LEVANTAMENTOS DE EPI:",
+    ...(epi.length ? epi.map((row) => `- ${row[0]} | ${row[1]} | ${row[5]}`) : ["- Sem registos"]),
+    "",
+    "ÚLTIMOS MOVIMENTOS DE EPC:",
+    ...(epc.length ? epc.map((row) => `- ${row[0]} | ${row[1]} | ${row[2]} | Qtd. ${row[3]} | ${row[4]}`) : ["- Sem registos"]),
+    "",
+    "Anexe o relatório em PDF correspondente antes de enviar este email."
+  ].join(lineBreak);
+
+  window.location.href =
+    `mailto:?subject=${encodeURIComponent("Relatório de histórico de EPI e EPC")}` +
+    `&body=${encodeURIComponent(body)}`;
+
+  notify("Email preparado", "O resumo dos históricos foi preparado no seu cliente de email.", "info");
+}
+
+/* ============================================================
+   INICIALIZAÇÃO
+============================================================ */
+
+document.addEventListener("DOMContentLoaded", () => {
+  initTabs();
+
+  $("loginForm").addEventListener("submit", fazerLogin);
+
+  $("loginEmail").addEventListener("input", () => {
+    $("loginError").style.display = "none";
+  });
+
+  $("loginSenha").addEventListener("input", () => {
+    $("loginError").style.display = "none";
+  });
+
+  $("systemDate").textContent = formatFullDate();
+});
+</script>
+</body>
+</html>
